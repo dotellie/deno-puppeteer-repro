@@ -1,10 +1,4 @@
-FROM lukechannings/deno AS dependencies
-
-COPY ./index.ts ./index.ts
-
-RUN deno compile -A --output app ./index.ts
-
-FROM debian:stable
+FROM denoland/deno
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -54,15 +48,15 @@ RUN apt-get -qq update \
     libxshmfence1 \
     && apt-get -y -qq autoremove \
     && apt-get -qq clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-    && groupadd -r deno && useradd -rm -g deno -G audio,video deno
-
-USER deno
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 WORKDIR /home/deno
-COPY --from=dependencies --chown=deno:deno ./app ./app
+
+COPY ./index.ts ./index.ts
+
+RUN deno compile -A --output app ./index.ts
 
 ENTRYPOINT ["./app"]
